@@ -16,7 +16,7 @@ import Style from "ol/style/Style";
 import VectorSource from "ol/source/Vector";
 import { Geometry } from "ol/geom";
 import VectorLayer from "ol/layer/Vector";
-import { fromLonLat, toLonLat } from "ol/proj";
+import { getUserProjection, ProjectionLike } from "ol/proj";
 import { BaseAdapterConfig, TerraDrawBaseAdapter } from "./common/base.adapter";
 
 type InjectableOL = {
@@ -28,7 +28,7 @@ type InjectableOL = {
 	VectorLayer: typeof VectorLayer;
 	VectorSource: typeof VectorSource;
 	Stroke: typeof Stroke;
-	toLonLat: typeof toLonLat;
+	getUserProjection: typeof getUserProjection;
 };
 
 export class TerraDrawOpenLayersAdapter extends TerraDrawBaseAdapter {
@@ -44,6 +44,7 @@ export class TerraDrawOpenLayersAdapter extends TerraDrawBaseAdapter {
 		this._lib = config.lib;
 
 		this._geoJSONReader = new this._lib.GeoJSON();
+		this._projection = this._lib.getUserProjection()?.getCode() || "EPSG:4326";
 
 		this._container = this._map.getViewport();
 
@@ -71,7 +72,7 @@ export class TerraDrawOpenLayersAdapter extends TerraDrawBaseAdapter {
 	private _lib: InjectableOL;
 	private _map: Map;
 	private _container: HTMLElement;
-	private _projection = "EPSG:3857" as const;
+	private _projection: ProjectionLike;
 	private _vectorSource: undefined | VectorSource<Feature<Geometry>>;
 	private _geoJSONReader: undefined | GeoJSON;
 
@@ -170,9 +171,10 @@ export class TerraDrawOpenLayersAdapter extends TerraDrawBaseAdapter {
 
 	private addFeature(feature: GeoJSONStoreFeatures) {
 		if (this._vectorSource && this._geoJSONReader) {
-			const olFeature = this._geoJSONReader.readFeature(feature, {
-				featureProjection: this._projection,
-			}) as Feature<Geometry>;
+			const olFeature = this._geoJSONReader.readFeature(
+				feature,
+				{},
+			) as Feature<Geometry>;
 			this._vectorSource.addFeature(olFeature);
 		} else {
 			throw new Error("Vector Source not initalised");
@@ -241,7 +243,7 @@ export class TerraDrawOpenLayersAdapter extends TerraDrawBaseAdapter {
 	 * @returns An object with 'x' and 'y' properties representing the pixel coordinates within the map container.
 	 */
 	public project(lng: number, lat: number) {
-		const [x, y] = this._map.getPixelFromCoordinate(fromLonLat([lng, lat]));
+		const [x, y] = this._map.getPixelFromCoordinate([lng, lat]);
 		return { x, y };
 	}
 
@@ -252,7 +254,7 @@ export class TerraDrawOpenLayersAdapter extends TerraDrawBaseAdapter {
 	 * @returns An object with 'lng' and 'lat' properties representing the longitude and latitude coordinates.
 	 */
 	public unproject(x: number, y: number) {
-		const [lng, lat] = toLonLat(this._map.getCoordinateFromPixel([x, y]));
+		const [lng, lat] = this._map.getCoordinateFromPixel([x, y]);
 		return { lng, lat };
 	}
 
