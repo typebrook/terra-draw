@@ -23,21 +23,15 @@ import {
 import { TerraDrawRenderMode } from "../../src/modes/render/render.mode";
 import { ValidateNotSelfIntersecting } from "../../src/validations/not-self-intersecting.validation";
 
-import Circle from "ol/geom/Circle";
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
 import Map from "ol/Map";
 import { TerraDrawOpenLayersAdapter } from "../../src/adapters/openlayers.adapter";
 import View from "ol/View";
-import { Circle as CircleStyle, Stroke, Style } from "ol/style";
+import { Circle, Fill, Stroke, Style } from "ol/style";
 import { OSM, Vector as VectorSource } from "ol/source";
 import { Tile as TileLayer, Vector as VectorLayer } from "ol/layer";
-import {
-	fromLonLat,
-	toLonLat,
-	getUserProjection,
-	setUserProjection,
-} from "ol/proj";
+import { getUserProjection, setUserProjection } from "ol/proj";
 import { register, fromEPSGCode } from "ol/proj/proj4";
 import proj4 from "proj4";
 import EsriMap from "@arcgis/core/Map";
@@ -415,15 +409,15 @@ const example = {
 			const draw = new TerraDraw({
 				adapter: new TerraDrawOpenLayersAdapter({
 					lib: {
-						Circle,
 						Feature,
 						GeoJSON,
 						Style,
 						VectorLayer,
 						VectorSource,
 						Stroke,
-						CircleStyle,
 						getUserProjection,
+						Circle,
+						Fill,
 					},
 					map,
 					coordinatePrecision: 9,
